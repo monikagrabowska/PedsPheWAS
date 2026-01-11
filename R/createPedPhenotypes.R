@@ -3,15 +3,18 @@ createPedPhenotypes <-
   function(id.vocab.code.index,
            id.sex,
            min.code.count=2,
-           full.population.ids=unique(id.vocab.code.index$id))
+           full.population.ids=unique(id.vocab.code.index$id),
+           vocabulary_map = c("Peds-Phecodes", "Peds-Phecodes-International"))
   {
+    vocabulary_map <- match.arg(vocabulary_map)
+    
     id.name=names(id.vocab.code.index)[1]
 
     #check to make sure numeric codes were not passed in
     if(!class(id.vocab.code.index[[3]]) %in% c("character","factor")) {stop("Please ensure character or factor code representation. Some vocabularies, eg ICD9CM, require strings to be represented accurately: E.G.: 250, 250.0, and 250.00 are different codes and necessitate string representation")}
     names(id.vocab.code.index)=c("id","vocabulary_id","code","index")
     message("Mapping codes to phecodes...")
-    phemapped=mapICDCodesToPedPhecodes(id.vocab.code.index) %>% transmute(id, code=phecode, index)
+    phemapped=mapICDCodesToPedPhecodes(id.vocab.code.index, vocabulary_map = vocabulary_map) %>% transmute(id, code=phecode, index)
 
     message("Aggregating codes...")
     phecode=ungroup(summarize(group_by(phemapped,id,code),count=aggregate_fun(index)))
